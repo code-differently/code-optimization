@@ -85,22 +85,42 @@ NGROK_PID=$!
 echo "⏳ Waiting for ngrok tunnels to start..."
 sleep 5
 
-# Extract URLs from ngrok logs
-API_URL=$(grep -A 10 "api.*started" ngrok.log | grep -o 'https://[^[:space:]]*\.ngrok-free\.app' | head -1)
-FRONTEND_URL=$(grep -A 10 "frontend.*started" ngrok.log | grep -o 'https://[^[:space:]]*\.ngrok-free\.app' | head -1)
+# Extract URLs from ngrok logs using a more reliable method
+echo "⏳ Extracting tunnel URLs..."
+sleep 2
 
-# Alternative method if the above doesn't work
-if [ -z "$API_URL" ] || [ -z "$FRONTEND_URL" ]; then
-    echo "⏳ Trying alternative URL extraction method..."
-    sleep 2
+# Extract all https URLs and identify them by port
+URLS=($(grep -o 'https://[^[:space:]]*\.ngrok-free\.app' ngrok.log | sort | uniq))
+
+if [ ${#URLS[@]} -ge 2 ]; then
+    # Try to identify which URL corresponds to which service by checking the log context
+    API_URL=""
+    FRONTEND_URL=""
     
-    # Extract all https URLs and assign them
-    URLS=($(grep -o 'https://[^[:space:]]*\.ngrok-free\.app' ngrok.log | sort | uniq))
+    # Look for URLs with context about which port they're forwarding to
+    while IFS= read -r line; do
+        if [[ $line == *"3001"* ]] && [[ $line == *"https://"* ]]; then
+            API_URL=$(echo "$line" | grep -o 'https://[^[:space:]]*\.ngrok-free\.app' | head -1)
+        elif [[ $line == *"3000"* ]] && [[ $line == *"https://"* ]]; then
+            FRONTEND_URL=$(echo "$line" | grep -o 'https://[^[:space:]]*\.ngrok-free\.app' | head -1)
+        fi
+    done < ngrok.log
     
-    if [ ${#URLS[@]} -ge 2 ]; then
-        API_URL=${URLS[0]}
-        FRONTEND_URL=${URLS[1]}
+    # Fallback: if we couldn't identify by port, assign based on tunnel names in order
+    if [ -z "$API_URL" ] || [ -z "$FRONTEND_URL" ]; then
+        # Check for tunnel names in the log
+        API_URL=$(grep -A 5 -B 5 "api.*started\|started.*api" ngrok.log | grep -o 'https://[^[:space:]]*\.ngrok-free\.app' | head -1)
+        FRONTEND_URL=$(grep -A 5 -B 5 "frontend.*started\|started.*frontend" ngrok.log | grep -o 'https://[^[:space:]]*\.ngrok-free\.app' | head -1)
+        
+        # Final fallback: assign in alphabetical order (usually API comes first alphabetically)
+        if [ -z "$API_URL" ] || [ -z "$FRONTEND_URL" ]; then
+            API_URL=${URLS[0]}
+            FRONTEND_URL=${URLS[1]}
+        fi
     fi
+else
+    API_URL=""
+    FRONTEND_URL=""
 fi
 
 if [ -z "$API_URL" ] || [ -z "$FRONTEND_URL" ]; then
@@ -116,13 +136,12 @@ echo "✅ API tunnel created: $API_URL"
 echo "✅ Frontend tunnel created: $FRONTEND_URL"
 
 # Create .env.local for frontend with the ngrok API URL
-cd ../web-fe
-echo "NEXT_PUBLIC_API_URL=$API_URL" > .env.local
+echo "NEXT_PUBLIC_API_URL=$API_URL" > packages/web-fe/.env.local
 echo "📝 Created .env.local with API URL: $API_URL"
 
 # Start frontend server in background
 echo "🚀 Starting frontend server on port 3000..."
-npm run web:dev &
+pnpm web:dev &
 FRONTEND_PID=$!
 
 echo ""

@@ -9,7 +9,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { PerformanceStats } from '@/components/PerformanceStats';
 import { StudentFiltersComponent } from '@/components/StudentFilters';
 import { useRenderingPerformance } from '@/hooks/useRenderingPerformance';
-import { Users, AlertCircle, RefreshCw } from 'lucide-react';
+import { Users, AlertCircle, RefreshCw, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 
 // Utility functions for URL parameter handling
 const parseFiltersFromURL = (searchParams: URLSearchParams): StudentFilters => {
@@ -60,6 +60,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentFilters, setCurrentFilters] = useState<StudentFilters>({});
+  const [showPerformanceStats, setShowPerformanceStats] = useState(false);
 
   // Track rendering performance
   const { renderCount } = useRenderingPerformance('HomePage');
@@ -158,7 +159,7 @@ export default function HomePage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20">
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -222,12 +223,66 @@ export default function HomePage() {
             ))}
           </div>
         )}
-
-        {/* Performance Stats */}
-        <div className="mt-12">
-          <PerformanceStats />
-        </div>
       </main>
+
+      {/* Sticky Performance Stats Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg">
+        {/* Collapsible Content */}
+        <div
+          className={`overflow-hidden ${
+            showPerformanceStats ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          {/* Header bar with collapse button */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+            <h3 className="text-sm font-medium text-gray-700">Performance Metrics</h3>
+            <button
+              onClick={() => {
+                console.log('Header collapse button clicked');
+                setShowPerformanceStats(false);
+              }}
+              className="p-2 bg-red-500 text-white hover:bg-red-600 rounded-full shadow-lg transition-colors"
+              title="Collapse performance stats"
+            >
+              <ChevronDown className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Performance stats content - also clickable to collapse */}
+          <div
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 cursor-pointer"
+            onClick={() => {
+              console.log('Content area clicked to collapse');
+              setShowPerformanceStats(false);
+            }}
+            title="Click to collapse"
+          >
+            <PerformanceStats />
+          </div>
+        </div>
+
+        {/* Toggle Bar */}
+        <div
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 cursor-pointer"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Performance stats bar clicked, current state:', showPerformanceStats);
+            setShowPerformanceStats(!showPerformanceStats);
+          }}
+          onMouseDown={() => console.log('Mouse down on performance stats bar')}
+          onMouseUp={() => console.log('Mouse up on performance stats bar')}
+          title="Toggle performance metrics"
+        >
+          <div className="w-full py-3 flex items-center justify-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-inset active:bg-gray-100">
+            <BarChart3 className="w-4 h-4" />
+            Performance Stats {showPerformanceStats ? '(Expanded)' : '(Collapsed)'}
+            <span>
+              <ChevronUp className="w-4 h-4" />
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

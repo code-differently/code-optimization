@@ -2,6 +2,15 @@ import { Student, ApiResponse, StudentFilters } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+// Helper function to get headers with ngrok bypass if needed
+const getHeaders = (additionalHeaders?: HeadersInit): HeadersInit => {
+  const headers: HeadersInit = {
+    'ngrok-skip-browser-warning': 'true',
+    ...additionalHeaders,
+  };
+  return headers;
+};
+
 // Performance tracking
 let requestStats = {
   totalRequests: 0,
@@ -61,7 +70,9 @@ export const studentsApi = {
         url += `?${params.toString()}`;
       }
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: getHeaders(),
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch students');
       }
@@ -72,7 +83,9 @@ export const studentsApi = {
 
   async getById(id: string): Promise<Student | null> {
     return trackRequest(async () => {
-      const response = await fetch(`${API_URL}/api/students/${id}`);
+      const response = await fetch(`${API_URL}/api/students/${id}`, {
+        headers: getHeaders(),
+      });
       if (!response.ok) {
         if (response.status === 404) return null;
         throw new Error('Failed to fetch student');
@@ -86,9 +99,9 @@ export const studentsApi = {
     return trackRequest(async () => {
       const response = await fetch(`${API_URL}/api/students`, {
         method: 'POST',
-        headers: {
+        headers: getHeaders({
           'Content-Type': 'application/json',
-        },
+        }),
         body: JSON.stringify(student),
       });
       if (!response.ok) {
@@ -104,9 +117,9 @@ export const studentsApi = {
     return trackRequest(async () => {
       const response = await fetch(`${API_URL}/api/students/${id}`, {
         method: 'PUT',
-        headers: {
+        headers: getHeaders({
           'Content-Type': 'application/json',
-        },
+        }),
         body: JSON.stringify(updates),
       });
       if (!response.ok) {
@@ -122,6 +135,7 @@ export const studentsApi = {
     return trackRequest(async () => {
       const response = await fetch(`${API_URL}/api/students/${id}`, {
         method: 'DELETE',
+        headers: getHeaders(),
       });
       if (!response.ok) {
         throw new Error('Failed to delete student');
@@ -131,7 +145,9 @@ export const studentsApi = {
 
   async getStats(): Promise<any> {
     return trackRequest(async () => {
-      const response = await fetch(`${API_URL}/api/stats`);
+      const response = await fetch(`${API_URL}/api/stats`, {
+        headers: getHeaders(),
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch stats');
       }
