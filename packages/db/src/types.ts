@@ -9,6 +9,13 @@ export interface Student {
   avatar?: string;
 }
 
+export interface StudentFilters {
+  major?: string;
+  year?: number;
+  gpaMin?: number;
+  gpaMax?: number;
+}
+
 export interface DbConfig {
   delays?: {
     create?: number;

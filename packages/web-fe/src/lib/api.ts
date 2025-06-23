@@ -1,4 +1,4 @@
-import { Student, ApiResponse } from '@/types';
+import { Student, ApiResponse, StudentFilters } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -45,9 +45,23 @@ export const getClientStats = () => {
 };
 
 export const studentsApi = {
-  async getAll(): Promise<Student[]> {
+  async getAll(filters?: StudentFilters): Promise<Student[]> {
     return trackRequest(async () => {
-      const response = await fetch(`${API_URL}/api/students`);
+      let url = `${API_URL}/api/students`;
+
+      // Add query parameters if filters are provided
+      if (filters && Object.keys(filters).length > 0) {
+        const params = new URLSearchParams();
+
+        if (filters.major) params.append('major', filters.major);
+        if (filters.year !== undefined) params.append('year', filters.year.toString());
+        if (filters.gpaMin !== undefined) params.append('gpaMin', filters.gpaMin.toString());
+        if (filters.gpaMax !== undefined) params.append('gpaMax', filters.gpaMax.toString());
+
+        url += `?${params.toString()}`;
+      }
+
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch students');
       }

@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { Student, DbConfig } from './types';
+import { Student, DbConfig, StudentFilters } from './types';
 
 export class JsonDatabase {
   private dataFile: string;
@@ -283,6 +283,35 @@ export class JsonDatabase {
 
   async findAll(): Promise<Student[]> {
     return this.executeWithTracking('findAll', 'read', () => this.readData());
+  }
+
+  async findWithFilters(filters: StudentFilters): Promise<Student[]> {
+    return this.executeWithTracking('findWithFilters', 'read', async () => {
+      const data = await this.readData();
+
+      return data.filter((student) => {
+        // Filter by major (exact match, case-insensitive)
+        if (filters.major && student.major.toLowerCase() !== filters.major.toLowerCase()) {
+          return false;
+        }
+
+        // Filter by year (exact match)
+        if (filters.year !== undefined && student.year !== filters.year) {
+          return false;
+        }
+
+        // Filter by GPA range
+        if (filters.gpaMin !== undefined && student.gpa < filters.gpaMin) {
+          return false;
+        }
+
+        if (filters.gpaMax !== undefined && student.gpa > filters.gpaMax) {
+          return false;
+        }
+
+        return true;
+      });
+    });
   }
 
   async findById(id: string): Promise<Student | null> {

@@ -100,7 +100,16 @@ A PNPM monorepo demonstrating performance optimization opportunities in a three-
    - API Health Check: http://localhost:3001/health
    - API Documentation: http://localhost:3001/api/students
 
-## Performance Bottlenecks (Intentional)
+## Features
+
+### Student Management
+- View all students with detailed information
+- Filter students by major, year, and GPA range
+- **Persistent filter state** - filters are saved in URL and survive page refreshes
+- Real-time performance monitoring
+- Sticky header and performance stats footer
+
+### Performance Bottlenecks (Intentional)
 
 This application intentionally includes several performance issues for educational purposes:
 
@@ -124,6 +133,7 @@ This application intentionally includes several performance issues for education
 - ❌ **No loading states optimization**: Poor UX during delays
 - ❌ **No virtual scrolling**: Renders all items at once
 - ❌ **No request deduplication**: Multiple simultaneous requests possible
+- ❌ **Server-side filtering**: Each filter change makes a new API call (intentionally inefficient)
 
 ## Configuration
 
@@ -194,12 +204,55 @@ Students will learn to:
 
 ```
 GET    /health              - Health check
-GET    /api/students        - Get all students
+GET    /api/students        - Get all students (with optional filters)
 GET    /api/students/:id    - Get student by ID
 POST   /api/students        - Create new student
 PUT    /api/students/:id    - Update student
 DELETE /api/students/:id    - Delete student
 POST   /api/config/delays   - Update database delays
+```
+
+### Filtering Students
+
+The `/api/students` endpoint supports filtering via query parameters:
+
+```bash
+# Filter by major
+GET /api/students?major=Computer%20Science
+
+# Filter by year
+GET /api/students?year=3
+
+# Filter by GPA range
+GET /api/students?gpaMin=3.0&gpaMax=4.0
+
+# Combine multiple filters
+GET /api/students?major=Data%20Science&year=4&gpaMin=3.5
+```
+
+Available filter parameters:
+- `major` - Filter by exact major (case-insensitive)
+- `year` - Filter by year in school (1-5)
+- `gpaMin` - Minimum GPA (0.0-4.0)
+- `gpaMax` - Maximum GPA (0.0-4.0)
+
+### Filter State Persistence
+
+Filters are automatically saved in the URL, allowing users to:
+- **Bookmark filtered results** for quick access
+- **Share filtered views** with others via URL
+- **Maintain filter state** across page refreshes and navigation
+
+Example URLs:
+```
+# Computer Science students only
+http://localhost:3000/?major=Computer%20Science
+
+# 4th year students with GPA above 3.5
+http://localhost:3000/?year=4&gpaMin=3.5
+
+# Data Science students in years 3-4 with GPA 3.0-3.8
+http://localhost:3000/?major=Data%20Science&year=3&gpaMin=3.0&gpaMax=3.8
 ```
 
 ## Development Commands

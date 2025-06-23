@@ -9,9 +9,17 @@ export interface Student {
   avatar?: string;
 }
 
+export interface StudentFilters {
+  major?: string;
+  year?: number;
+  gpaMin?: number;
+  gpaMax?: number;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
   count?: number;
+  filters?: StudentFilters;
 }

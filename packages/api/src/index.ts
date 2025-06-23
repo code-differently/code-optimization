@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { JsonDatabase } from '@code-optimization/db';
+import { JsonDatabase, StudentFilters } from '@code-optimization/db';
 import path from 'path';
 
 const app = express();
@@ -35,14 +35,48 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Get all students
+// Get all students with optional filtering
 app.get('/api/students', async (req, res) => {
   try {
-    const students = await db.findAll();
+    const { major, year, gpaMin, gpaMax } = req.query;
+
+    // Build filters object
+    const filters: StudentFilters = {};
+
+    if (major && typeof major === 'string') {
+      filters.major = major;
+    }
+
+    if (year && typeof year === 'string') {
+      const yearNum = parseInt(year);
+      if (!isNaN(yearNum)) {
+        filters.year = yearNum;
+      }
+    }
+
+    if (gpaMin && typeof gpaMin === 'string') {
+      const gpaMinNum = parseFloat(gpaMin);
+      if (!isNaN(gpaMinNum)) {
+        filters.gpaMin = gpaMinNum;
+      }
+    }
+
+    if (gpaMax && typeof gpaMax === 'string') {
+      const gpaMaxNum = parseFloat(gpaMax);
+      if (!isNaN(gpaMaxNum)) {
+        filters.gpaMax = gpaMaxNum;
+      }
+    }
+
+    // Use filtered search if any filters are provided, otherwise get all
+    const students =
+      Object.keys(filters).length > 0 ? await db.findWithFilters(filters) : await db.findAll();
+
     res.json({
       success: true,
       data: students,
       count: students.length,
+      filters: Object.keys(filters).length > 0 ? filters : undefined,
     });
   } catch (error) {
     console.error('Error fetching students:', error);
