@@ -54,8 +54,25 @@ A PNPM monorepo demonstrating performance optimization opportunities in a three-
 
 3. Start all services in development mode:
 
+   **Option 1: Local development**
    ```bash
    pnpm dev
+   # or
+   ./scripts/dev.sh
+   ```
+
+   **Option 2: Network access (for sharing with students)**
+   ```bash
+   pnpm dev:network
+   # or
+   ./scripts/dev-network.sh
+   ```
+
+   **Option 3: Cloud deployment (persistent access)**
+   ```bash
+   pnpm deploy
+   # or
+   ./scripts/deploy.sh
    ```
 
    Or start services individually:
@@ -184,8 +201,17 @@ POST   /api/config/delays   - Update database delays
 # Install dependencies
 pnpm install
 
-# Development mode (all packages)
+# Development mode (local only)
 pnpm dev
+
+# Development mode (accessible on network)
+pnpm dev:network
+
+# Deploy to cloud (Vercel)
+pnpm deploy
+
+# Legacy: Development mode (all packages)
+pnpm dev:all
 
 # Build all packages
 pnpm build
@@ -198,6 +224,24 @@ pnpm --filter db run build
 pnpm --filter api run dev
 pnpm --filter web-fe run build
 ```
+
+## Scripts Directory
+
+All development and deployment scripts are located in `scripts/`:
+
+- `scripts/dev.sh` - Standard local development
+- `scripts/dev-network.sh` - Network-accessible development (for classrooms)
+- `scripts/deploy.sh` - Quick cloud deployment to Vercel
+
+## Sharing with Students
+
+### For Live Lectures:
+1. **ngrok (Recommended)**: Install ngrok, run `pnpm dev`, then `ngrok http 3000`
+2. **Network Mode**: Run `pnpm dev:network` and share the local IP URL
+3. **Cloud Deploy**: Run `pnpm deploy` for persistent access
+
+### For Async Learning:
+Use `pnpm deploy` to create a permanent URL students can access anytime.
 
 ## Tech Stack
 

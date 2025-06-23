@@ -6,12 +6,16 @@ import { studentsApi } from '@/lib/api';
 import { StudentCard } from '@/components/StudentCard';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { PerformanceStats } from '@/components/PerformanceStats';
+import { useRenderingPerformance } from '@/hooks/useRenderingPerformance';
 import { Users, AlertCircle, RefreshCw } from 'lucide-react';
 
 export default function HomePage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Track rendering performance
+  const { renderCount } = useRenderingPerformance('HomePage');
 
   const fetchStudents = async () => {
     try {
@@ -66,7 +70,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="sticky top-0 z-50 bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">

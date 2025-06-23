@@ -31,4 +31,4 @@ echo "Press Ctrl+C to stop all services"
 echo ""
 
 # Start all services in development mode
-pnpm dev
+pnpm dev:all

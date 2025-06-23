@@ -42,70 +42,183 @@ export class JsonDatabase {
     await fs.ensureDir(dir);
 
     if (!(await fs.pathExists(this.dataFile))) {
-      const initialData: Student[] = [
-        {
-          id: uuidv4(),
-          name: 'Alex Johnson',
-          email: 'alex.johnson@university.edu',
-          major: 'Computer Science',
-          year: 3,
-          gpa: 3.8,
-          phone: '555-0101',
-          avatar: 'https://ui-avatars.com/api/?name=Alex+Johnson&background=0D8ABC&color=fff',
-        },
-        {
-          id: uuidv4(),
-          name: 'Morgan Smith',
-          email: 'morgan.smith@university.edu',
-          major: 'Information Systems',
-          year: 2,
-          gpa: 3.6,
-          phone: '555-0102',
-          avatar: 'https://ui-avatars.com/api/?name=Morgan+Smith&background=6366F1&color=fff',
-        },
-        {
-          id: uuidv4(),
-          name: 'Casey Davis',
-          email: 'casey.davis@university.edu',
-          major: 'Software Engineering',
-          year: 4,
-          gpa: 3.9,
-          phone: '555-0103',
-          avatar: 'https://ui-avatars.com/api/?name=Casey+Davis&background=EF4444&color=fff',
-        },
-        {
-          id: uuidv4(),
-          name: 'Jordan Lee',
-          email: 'jordan.lee@university.edu',
-          major: 'Data Science',
-          year: 1,
-          gpa: 3.7,
-          phone: '555-0104',
-          avatar: 'https://ui-avatars.com/api/?name=Jordan+Lee&background=10B981&color=fff',
-        },
-        {
-          id: uuidv4(),
-          name: 'Taylor Brown',
-          email: 'taylor.brown@university.edu',
-          major: 'Cybersecurity',
-          year: 3,
-          gpa: 3.5,
-          phone: '555-0105',
-          avatar: 'https://ui-avatars.com/api/?name=Taylor+Brown&background=F59E0B&color=fff',
-        },
-        {
-          id: uuidv4(),
-          name: 'Riley Wilson',
-          email: 'riley.wilson@university.edu',
-          major: 'Computer Science',
-          year: 2,
-          gpa: 3.4,
-          phone: '555-0106',
-          avatar: 'https://ui-avatars.com/api/?name=Riley+Wilson&background=8B5CF6&color=fff',
-        },
-      ];
+      const initialData: Student[] = this.generateStudentData();
       await fs.writeJson(this.dataFile, initialData, { spaces: 2 });
     }
+  }
+
+  private generateStudentData(): Student[] {
+    const firstNames = [
+      'Alex',
+      'Morgan',
+      'Casey',
+      'Jordan',
+      'Taylor',
+      'Riley',
+      'Avery',
+      'Quinn',
+      'Cameron',
+      'Blake',
+      'Sam',
+      'Devon',
+      'Emerson',
+      'Finley',
+      'Harper',
+      'Hayden',
+      'Jamie',
+      'Kai',
+      'Logan',
+      'Parker',
+      'Peyton',
+      'Reese',
+      'River',
+      'Rowan',
+      'Sage',
+      'Skyler',
+      'Sydney',
+      'Tatum',
+      'Phoenix',
+      'Remy',
+      'Dakota',
+      'Elliot',
+      'Eden',
+      'Indigo',
+      'Lane',
+      'Nova',
+      'Oakley',
+      'Raven',
+      'Scout',
+      'Wren',
+      'Ari',
+      'Ash',
+      'Bay',
+      'Beau',
+      'Briar',
+      'Charlie',
+      'Drew',
+      'Ellis',
+      'Frankie',
+      'Gray',
+    ];
+
+    const lastNames = [
+      'Johnson',
+      'Smith',
+      'Davis',
+      'Lee',
+      'Brown',
+      'Wilson',
+      'Martinez',
+      'Anderson',
+      'Taylor',
+      'Thomas',
+      'Jackson',
+      'White',
+      'Harris',
+      'Martin',
+      'Garcia',
+      'Rodriguez',
+      'Lewis',
+      'Walker',
+      'Hall',
+      'Allen',
+      'Young',
+      'King',
+      'Wright',
+      'Lopez',
+      'Hill',
+      'Scott',
+      'Green',
+      'Adams',
+      'Baker',
+      'Gonzalez',
+      'Nelson',
+      'Carter',
+      'Mitchell',
+      'Perez',
+      'Roberts',
+      'Turner',
+      'Phillips',
+      'Campbell',
+      'Parker',
+      'Evans',
+      'Edwards',
+      'Collins',
+      'Stewart',
+      'Sanchez',
+      'Morris',
+      'Rogers',
+      'Reed',
+      'Cook',
+      'Morgan',
+      'Bell',
+    ];
+
+    const majors = [
+      'Computer Science',
+      'Software Engineering',
+      'Information Systems',
+      'Data Science',
+      'Cybersecurity',
+      'Computer Engineering',
+      'Information Technology',
+      'Web Development',
+      'Artificial Intelligence',
+      'Machine Learning',
+      'Game Development',
+      'Mobile Development',
+      'Network Engineering',
+      'Database Administration',
+      'UI/UX Design',
+      'Digital Marketing',
+    ];
+
+    const colors = [
+      '0D8ABC',
+      '6366F1',
+      'EF4444',
+      '10B981',
+      'F59E0B',
+      '8B5CF6',
+      'EC4899',
+      '06B6D4',
+      'F97316',
+      '84CC16',
+      '3B82F6',
+      'EAB308',
+      'DC2626',
+      '059669',
+      '7C3AED',
+      'DB2777',
+    ];
+
+    const students: Student[] = [];
+
+    for (let i = 0; i < 1000; i++) {
+      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+      const name = `${firstName} ${lastName}`;
+      const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@university.edu`;
+      const major = majors[Math.floor(Math.random() * majors.length)];
+      const year = Math.floor(Math.random() * 4) + 1; // 1-4
+      const gpa = Math.round((Math.random() * 2 + 2.5) * 100) / 100; // 2.5-4.5, rounded to 2 decimals
+      const phone = `555-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${color}&color=fff`;
+
+      students.push({
+        id: uuidv4(),
+        name,
+        email,
+        major,
+        year,
+        gpa,
+        phone,
+        avatar,
+      });
+    }
+
+    return students;
   }
 
   private async delay(operation: keyof NonNullable<DbConfig['delays']>): Promise<void> {

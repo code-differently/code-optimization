@@ -1,4 +1,5 @@
 import { Student } from '@/types';
+import { useRenderingPerformance } from '@/hooks/useRenderingPerformance';
 import { User, Mail, GraduationCap, Calendar, TrendingUp, Phone } from 'lucide-react';
 import Image from 'next/image';
 
@@ -9,6 +10,8 @@ interface StudentCardProps {
 }
 
 export function StudentCard({ student, onEdit, onDelete }: StudentCardProps) {
+  // Track rendering performance for individual cards
+  useRenderingPerformance(`StudentCard-${student.id}`);
   const getYearLabel = (year: number) => {
     switch (year) {
       case 1:

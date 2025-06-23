@@ -4,6 +4,9 @@
     "description": "A PNPM monorepo for demonstrating performance optimization in three-tier architecture",
     "private": true,
     "scripts": {
+        "dev": "./scripts/dev.sh",
+        "dev:network": "./scripts/dev-network.sh",
+        "deploy": "./scripts/deploy.sh",
         "dev:all": "pnpm --parallel run dev",
         "build": "pnpm --recursive run build",
         "clean": "pnpm --recursive run clean",
