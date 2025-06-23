@@ -1,4 +1,4 @@
-import { Student, ApiResponse, StudentFilters } from '@/types';
+import { Student, ApiResponse, StudentFilters, PaginationParams, PaginatedResponse } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -54,19 +54,29 @@ export const getClientStats = () => {
 };
 
 export const studentsApi = {
-  async getAll(filters?: StudentFilters): Promise<Student[]> {
+  async getAll(
+    filters?: StudentFilters,
+    pagination?: PaginationParams
+  ): Promise<PaginatedResponse<Student>> {
     return trackRequest(async () => {
       let url = `${API_URL}/api/students`;
+      const params = new URLSearchParams();
 
-      // Add query parameters if filters are provided
+      // Add pagination parameters
+      if (pagination) {
+        params.append('page', pagination.page.toString());
+        params.append('limit', pagination.limit.toString());
+      }
+
+      // Add filter parameters
       if (filters && Object.keys(filters).length > 0) {
-        const params = new URLSearchParams();
-
         if (filters.major) params.append('major', filters.major);
         if (filters.year !== undefined) params.append('year', filters.year.toString());
         if (filters.gpaMin !== undefined) params.append('gpaMin', filters.gpaMin.toString());
         if (filters.gpaMax !== undefined) params.append('gpaMax', filters.gpaMax.toString());
+      }
 
+      if (params.toString()) {
         url += `?${params.toString()}`;
       }
 
@@ -76,8 +86,20 @@ export const studentsApi = {
       if (!response.ok) {
         throw new Error('Failed to fetch students');
       }
-      const result: ApiResponse<Student[]> = await response.json();
-      return result.data || [];
+      const result: ApiResponse<PaginatedResponse<Student>> = await response.json();
+      return (
+        result.data || {
+          data: [],
+          pagination: {
+            page: 1,
+            limit: 50,
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrev: false,
+          },
+        }
+      );
     });
   },
 

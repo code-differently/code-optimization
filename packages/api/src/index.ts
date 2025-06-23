@@ -35,10 +35,10 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Get all students with optional filtering
+// Get all students with optional filtering and pagination
 app.get('/api/students', async (req, res) => {
   try {
-    const { major, year, gpaMin, gpaMax } = req.query;
+    const { major, year, gpaMin, gpaMax, page, limit } = req.query;
 
     // Build filters object
     const filters: StudentFilters = {};
@@ -68,14 +68,39 @@ app.get('/api/students', async (req, res) => {
       }
     }
 
-    // Use filtered search if any filters are provided, otherwise get all
-    const students =
+    // Parse pagination parameters
+    const pageNum = page && typeof page === 'string' ? parseInt(page) : 1;
+    const limitNum = limit && typeof limit === 'string' ? parseInt(limit) : 50;
+
+    // Validate pagination parameters
+    const validPage = Math.max(1, isNaN(pageNum) ? 1 : pageNum);
+    const validLimit = Math.min(200, Math.max(1, isNaN(limitNum) ? 50 : limitNum));
+
+    // Get all matching students first
+    const allStudents =
       Object.keys(filters).length > 0 ? await db.findWithFilters(filters) : await db.findAll();
+
+    // Calculate pagination
+    allStudents.sort((a, b) => a.name.localeCompare(b.name));
+    const total = allStudents.length;
+    const totalPages = Math.ceil(total / validLimit);
+    const startIndex = (validPage - 1) * validLimit;
+    const endIndex = startIndex + validLimit;
+    const paginatedStudents = allStudents.slice(startIndex, endIndex);
 
     res.json({
       success: true,
-      data: students,
-      count: students.length,
+      data: {
+        data: paginatedStudents,
+        pagination: {
+          page: validPage,
+          limit: validLimit,
+          total,
+          totalPages,
+          hasNext: validPage < totalPages,
+          hasPrev: validPage > 1,
+        },
+      },
       filters: Object.keys(filters).length > 0 ? filters : undefined,
     });
   } catch (error) {

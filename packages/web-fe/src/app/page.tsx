@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Student, StudentFilters } from '@/types';
+import { Student, StudentFilters, PaginationParams, PaginatedResponse } from '@/types';
 import { studentsApi } from '@/lib/api';
 import { StudentCard } from '@/components/StudentCard';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { PerformanceStats } from '@/components/PerformanceStats';
 import { StudentFiltersComponent } from '@/components/StudentFilters';
+import { StudentCardSkeleton } from '@/components/StudentCardSkeleton';
+import { Pagination } from '@/components/Pagination';
 import { useRenderingPerformance } from '@/hooks/useRenderingPerformance';
 import { Users, AlertCircle, RefreshCw, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 
@@ -61,17 +63,30 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [currentFilters, setCurrentFilters] = useState<StudentFilters>({});
   const [showPerformanceStats, setShowPerformanceStats] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 50,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false,
+  });
 
   // Track rendering performance
   const { renderCount } = useRenderingPerformance('HomePage');
 
-  const fetchStudents = async (filters?: StudentFilters) => {
+  const fetchStudents = async (filters?: StudentFilters, paginationParams?: PaginationParams) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await studentsApi.getAll(filters);
-      setStudents(data);
+      const paginationToUse = paginationParams || { page: currentPage, limit: pageSize };
+      const response = await studentsApi.getAll(filters, paginationToUse);
+      setStudents(response.data);
+      setPagination(response.pagination);
       setCurrentFilters(filters || {});
+      setCurrentPage(response.pagination.page);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch students');
     } finally {
@@ -80,19 +95,32 @@ export default function HomePage() {
   };
 
   const handleFiltersChange = (filters: StudentFilters) => {
+    // Reset to page 1 when filters change
+    setCurrentPage(1);
     // Update URL with new filters
     updateURLWithFilters(router, filters);
     // Fetch will happen in useEffect when URL changes
   };
 
   const handleRefresh = () => {
-    fetchStudents(currentFilters);
+    fetchStudents(currentFilters, { page: currentPage, limit: pageSize });
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchStudents(currentFilters, { page, limit: pageSize });
+  };
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1); // Reset to first page when changing page size
+    fetchStudents(currentFilters, { page: 1, limit: newPageSize });
   };
 
   // Initialize filters from URL on mount and when URL changes
   useEffect(() => {
     const filtersFromURL = parseFiltersFromURL(searchParams);
-    fetchStudents(filtersFromURL);
+    fetchStudents(filtersFromURL, { page: 1, limit: pageSize });
   }, [searchParams]); // Re-run when search params change
 
   // Memoize currentFilters to prevent unnecessary re-renders
@@ -100,20 +128,6 @@ export default function HomePage() {
     () => currentFilters,
     [currentFilters.major, currentFilters.year, currentFilters.gpaMin, currentFilters.gpaMax]
   );
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-gray-600">Loading students...</p>
-          <p className="mt-2 text-sm text-gray-500">
-            Please wait while the data is being fetched from the database.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -164,7 +178,12 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-lg font-medium text-gray-900 mb-2">Computer Science Students</h2>
-              <p className="text-gray-600">Showing {students.length} students.</p>
+              <p className="text-gray-600">
+                Showing {students.length} of {pagination.total} students
+                {pagination.total > pageSize &&
+                  ` (Page ${currentPage} of ${pagination.totalPages})`}
+                .
+              </p>
             </div>
             <div className="flex items-center gap-3">
               <StudentFiltersComponent
@@ -208,7 +227,14 @@ export default function HomePage() {
           )}
         </div>
 
-        {students.length === 0 ? (
+        {loading ? (
+          // Show skeleton cards while loading - show up to 12 skeletons or page size, whichever is smaller
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: Math.min(pageSize, 12) }, (_, index) => (
+              <StudentCardSkeleton key={`skeleton-${index}`} />
+            ))}
+          </div>
+        ) : students.length === 0 ? (
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No students found</h3>
@@ -217,11 +243,28 @@ export default function HomePage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {students.map((student) => (
-              <StudentCard key={student.id} student={student} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {students.map((student) => (
+                <StudentCard key={student.id} student={student} />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {pagination.total > 0 && (
+              <div className="mt-8">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={pagination.totalPages}
+                  pageSize={pageSize}
+                  totalItems={pagination.total}
+                  onPageChange={handlePageChange}
+                  onPageSizeChange={handlePageSizeChange}
+                  isLoading={loading}
+                />
+              </div>
+            )}
+          </>
         )}
       </main>
 
