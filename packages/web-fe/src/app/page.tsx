@@ -10,8 +10,19 @@ import { PerformanceStats } from '@/components/PerformanceStats';
 import { StudentFiltersComponent } from '@/components/StudentFilters';
 import { StudentCardSkeleton } from '@/components/StudentCardSkeleton';
 import { Pagination } from '@/components/Pagination';
+import { VirtualStudentGrid } from '@/components/VirtualStudentGrid';
 import { useRenderingPerformance } from '@/hooks/useRenderingPerformance';
-import { Users, AlertCircle, RefreshCw, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
+import { useStudents } from '@/hooks/useStudents';
+import { usePrefetchAdjacentPages } from '@/hooks/usePrefetchAdjacentPages';
+import {
+  Users,
+  AlertCircle,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  BarChart3,
+  Loader2,
+} from 'lucide-react';
 
 // Utility functions for URL parameter handling
 const parseFiltersFromURL = (searchParams: URLSearchParams): StudentFilters => {
@@ -58,69 +69,60 @@ const updateURLWithFilters = (router: any, filters: StudentFilters) => {
 export default function HomePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [students, setStudents] = useState<Student[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [currentFilters, setCurrentFilters] = useState<StudentFilters>({});
   const [showPerformanceStats, setShowPerformanceStats] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 50,
-    total: 0,
-    totalPages: 0,
-    hasNext: false,
-    hasPrev: false,
-  });
+  const [useVirtualScrolling, setUseVirtualScrolling] = useState(true);
 
   // Track rendering performance
   const { renderCount } = useRenderingPerformance('HomePage');
 
-  const fetchStudents = async (filters?: StudentFilters, paginationParams?: PaginationParams) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const paginationToUse = paginationParams || { page: currentPage, limit: pageSize };
-      const response = await studentsApi.getAll(filters, paginationToUse);
-      setStudents(response.data);
-      setPagination(response.pagination);
-      setCurrentFilters(filters || {});
-      setCurrentPage(response.pagination.page);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch students');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use SWR for data fetching and caching
+  const { students, pagination, loading, validating, error, refresh, invalidateCache, isCacheHit } =
+    useStudents({
+      filters: currentFilters,
+      pagination: { page: currentPage, limit: pageSize },
+      revalidateOnFocus: true,
+      refreshInterval: 0, // No auto-refresh, manual control
+    });
+
+  // Prefetch adjacent pages for better navigation performance
+  usePrefetchAdjacentPages({
+    currentPage,
+    totalPages: pagination.totalPages,
+    pageSize,
+    filters: currentFilters,
+    enabled: !loading && !error, // Only prefetch when current data is loaded
+  });
 
   const handleFiltersChange = (filters: StudentFilters) => {
     // Reset to page 1 when filters change
     setCurrentPage(1);
+    setCurrentFilters(filters);
     // Update URL with new filters
     updateURLWithFilters(router, filters);
-    // Fetch will happen in useEffect when URL changes
   };
 
   const handleRefresh = () => {
-    fetchStudents(currentFilters, { page: currentPage, limit: pageSize });
+    // Force revalidation of current data
+    refresh();
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    fetchStudents(currentFilters, { page, limit: pageSize });
   };
 
   const handlePageSizeChange = (newPageSize: number) => {
     setPageSize(newPageSize);
     setCurrentPage(1); // Reset to first page when changing page size
-    fetchStudents(currentFilters, { page: 1, limit: newPageSize });
   };
 
   // Initialize filters from URL on mount and when URL changes
   useEffect(() => {
     const filtersFromURL = parseFiltersFromURL(searchParams);
-    fetchStudents(filtersFromURL, { page: 1, limit: pageSize });
+    setCurrentFilters(filtersFromURL);
+    setCurrentPage(1);
   }, [searchParams]); // Re-run when search params change
 
   // Memoize currentFilters to prevent unnecessary re-renders
@@ -139,9 +141,10 @@ export default function HomePage() {
           <button
             onClick={handleRefresh}
             className="inline-flex items-center px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+            disabled={validating}
           >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Try Again
+            <RefreshCw className={`w-4 h-4 mr-2 ${validating ? 'animate-spin' : ''}`} />
+            {validating ? 'Retrying...' : 'Try Again'}
           </button>
         </div>
       </div>
@@ -161,13 +164,48 @@ export default function HomePage() {
                 <p className="text-sm text-gray-500">Performance Optimization Demo</p>
               </div>
             </div>
-            <button
-              onClick={handleRefresh}
-              className="inline-flex items-center px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Virtual Scrolling Toggle */}
+              <div className="flex items-center gap-2">
+                <label htmlFor="virtualScrolling" className="text-sm text-gray-700">
+                  Virtual Scrolling:
+                </label>
+                <button
+                  id="virtualScrolling"
+                  onClick={() => setUseVirtualScrolling(!useVirtualScrolling)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    useVirtualScrolling ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      useVirtualScrolling ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Cache Status Indicator */}
+              {validating && !loading && (
+                <div className="flex items-center gap-2 text-blue-600">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs">Syncing...</span>
+                </div>
+              )}
+
+              <button
+                onClick={handleRefresh}
+                disabled={validating}
+                className={`inline-flex items-center px-3 py-2 text-sm rounded-lg transition-colors ${
+                  validating
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${validating ? 'animate-spin' : ''}`} />
+                {validating ? 'Syncing...' : 'Refresh'}
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -178,12 +216,26 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-lg font-medium text-gray-900 mb-2">Computer Science Students</h2>
-              <p className="text-gray-600">
-                Showing {students.length} of {pagination.total} students
-                {pagination.total > pageSize &&
-                  ` (Page ${currentPage} of ${pagination.totalPages})`}
-                .
-              </p>
+              <div className="flex items-center gap-4">
+                <p className="text-gray-600">
+                  Showing {students.length} of {pagination.total} students
+                  {pagination.total > pageSize &&
+                    ` (Page ${currentPage} of ${pagination.totalPages})`}
+                  .
+                </p>
+                {!loading && !validating && students.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-2 h-2 rounded-full ${isCacheHit ? 'bg-green-500' : 'bg-blue-500'}`}
+                    ></div>
+                    <span
+                      className={`text-xs font-medium ${isCacheHit ? 'text-green-600' : 'text-blue-600'}`}
+                    >
+                      {isCacheHit ? 'From Cache' : 'From Network'}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <StudentFiltersComponent
@@ -227,14 +279,7 @@ export default function HomePage() {
           )}
         </div>
 
-        {loading ? (
-          // Show skeleton cards while loading - show up to 12 skeletons or page size, whichever is smaller
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: Math.min(pageSize, 12) }, (_, index) => (
-              <StudentCardSkeleton key={`skeleton-${index}`} />
-            ))}
-          </div>
-        ) : students.length === 0 ? (
+        {students.length === 0 && !loading ? (
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No students found</h3>
@@ -242,15 +287,49 @@ export default function HomePage() {
               The database might be empty or there could be a connection issue.
             </p>
           </div>
-        ) : (
+        ) : useVirtualScrolling ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {students.map((student) => (
-                <StudentCard key={student.id} student={student} />
-              ))}
-            </div>
+            {/* Virtual Scrolling Grid */}
+            <VirtualStudentGrid
+              students={students}
+              loading={loading}
+              pageSize={pageSize}
+              className="mb-8"
+            />
 
             {/* Pagination */}
+            {pagination.total > 0 && (
+              <div className="mt-8">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={pagination.totalPages}
+                  pageSize={pageSize}
+                  totalItems={pagination.total}
+                  onPageChange={handlePageChange}
+                  onPageSizeChange={handlePageSizeChange}
+                  isLoading={loading}
+                />
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            {/* Regular Grid */}
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: Math.min(pageSize, 12) }, (_, index) => (
+                  <StudentCardSkeleton key={`skeleton-${index}`} />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {students.map((student) => (
+                  <StudentCard key={student.id} student={student} />
+                ))}
+              </div>
+            )}
+
+            {/* Pagination for regular mode */}
             {pagination.total > 0 && (
               <div className="mt-8">
                 <Pagination

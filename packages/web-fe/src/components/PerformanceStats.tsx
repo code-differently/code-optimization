@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { studentsApi, getClientStats } from '@/lib/api';
 import { getRenderingStats } from '@/hooks/useRenderingPerformance';
 import { Clock, Database, Server, Wifi, Activity, BarChart3, Monitor } from 'lucide-react';
+import { CacheManager } from './CacheManager';
 
 interface DatabaseStats {
   totalOperations: number;
@@ -283,6 +284,11 @@ export function PerformanceStats() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Cache Manager Section */}
+        <div className="mt-6">
+          <CacheManager />
         </div>
       </div>
     </div>
