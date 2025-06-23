@@ -61,14 +61,21 @@ A PNPM monorepo demonstrating performance optimization opportunities in a three-
    ./scripts/dev.sh
    ```
 
-   **Option 2: Network access (for sharing with students)**
+   **Option 2: Network access (same WiFi/network)**
    ```bash
    pnpm dev:network
    # or
    ./scripts/dev-network.sh
    ```
 
-   **Option 3: Cloud deployment (persistent access)**
+   **Option 3: ngrok tunnels (universal remote access)**
+   ```bash
+   pnpm dev:ngrok
+   # or
+   ./scripts/dev-ngrok.sh
+   ```
+
+   **Option 4: Cloud deployment (persistent access)**
    ```bash
    pnpm deploy
    # or
@@ -207,6 +214,9 @@ pnpm dev
 # Development mode (accessible on network)
 pnpm dev:network
 
+# Development mode (ngrok tunnels for remote access)
+pnpm dev:ngrok
+
 # Deploy to cloud (Vercel)
 pnpm deploy
 
@@ -231,17 +241,25 @@ All development and deployment scripts are located in `scripts/`:
 
 - `scripts/dev.sh` - Standard local development
 - `scripts/dev-network.sh` - Network-accessible development (for classrooms)
+- `scripts/dev-ngrok.sh` - ngrok tunnels for universal remote access
 - `scripts/deploy.sh` - Quick cloud deployment to Vercel
 
 ## Sharing with Students
 
 ### For Live Lectures:
-1. **ngrok (Recommended)**: Install ngrok, run `pnpm dev`, then `ngrok http 3000`
-2. **Network Mode**: Run `pnpm dev:network` and share the local IP URL
+1. **ngrok (Recommended)**: Run `pnpm dev:ngrok` - creates tunnels for both API and frontend
+2. **Network Mode**: Run `pnpm dev:network` and share the local IP URL (same network only)
 3. **Cloud Deploy**: Run `pnpm deploy` for persistent access
 
 ### For Async Learning:
 Use `pnpm deploy` to create a permanent URL students can access anytime.
+
+### ngrok Setup (First Time)
+1. Sign up at https://ngrok.com/ (free)
+2. Install: `brew install ngrok` (macOS) or download from website
+3. Get your auth token from the ngrok dashboard
+4. Run: `ngrok config add-authtoken YOUR_TOKEN`
+5. Then use: `pnpm dev:ngrok`
 
 ## Tech Stack
 

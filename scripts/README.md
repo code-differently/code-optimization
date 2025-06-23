@@ -31,6 +31,20 @@ Usage:
 pnpm dev:network
 ```
 
+### 🚇 `dev-ngrok.sh`
+**Universal remote access with ngrok**
+- Creates ngrok tunnels for both API and frontend
+- Automatically configures frontend to use tunneled API
+- Perfect for remote students anywhere in the world
+- Requires ngrok account and setup (free tier available)
+
+Usage:
+```bash
+./scripts/dev-ngrok.sh
+# or
+pnpm dev:ngrok
+```
+
 ### ☁️ `deploy.sh`
 **Quick cloud deployment**
 - Deploys the frontend to Vercel
@@ -48,13 +62,12 @@ pnpm deploy
 ## For Teaching Scenarios
 
 ### Live Lectures (Real-time Demo)
-1. **Best**: Use ngrok for universal access
+1. **Best for Universal Access**: Use ngrok for students anywhere
    ```bash
-   pnpm dev
-   ngrok http 3000  # in another terminal
+   pnpm dev:ngrok
    ```
 
-2. **Alternative**: Use network mode for same-network access
+2. **Alternative for Same Network**: Use network mode for same-network access
    ```bash
    pnpm dev:network
    ```

@@ -24,6 +24,14 @@ cypress-results
 !.env.test
 !.env.example
 
+# ngrok logs and temp files
+ngrok-*.log
+**/ngrok-*.log
+ngrok.log
+**/ngrok.log
+ngrok-config.yml
+**/ngrok-config.yml
+
 # environment variable backups
 env-backups/
 **/env-backup-*.zip
