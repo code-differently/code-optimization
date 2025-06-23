@@ -1,0 +1,22 @@
+{
+    "name": "@code-optimization/db",
+    "version": "1.0.0",
+    "description": "Database client with JSON storage and configurable delays",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "dev": "tsc --watch",
+        "build": "tsc",
+        "clean": "rm -rf dist"
+    },
+    "dependencies": {
+        "fs-extra": "^11.2.0",
+        "uuid": "^9.0.1"
+    },
+    "devDependencies": {
+        "@types/fs-extra": "^11.0.4",
+        "@types/node": "^20.10.0",
+        "@types/uuid": "^9.0.7",
+        "typescript": "^5.3.0"
+    }
+}

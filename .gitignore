@@ -1,0 +1,68 @@
+# dependencies
+**/node_modules
+.pnp
+.pnp.js
+
+# testing
+**/coverage
+.nyc_output
+cypress-results
+
+# build outputs
+**/dist
+**/build
+**/out
+**/.next
+**/.nuxt
+**/.vite
+**/.svelte-kit
+**/generated
+
+# environment variables
+.env
+.env.*
+!.env.test
+!.env.example
+
+# environment variable backups
+env-backups/
+**/env-backup-*.zip
+
+# logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# cache
+.npm
+.eslintcache
+.stylelintcache
+**/.DS_Store
+.turbo
+.cache
+tsconfig.tsbuildinfo
+
+# personal todo files (keep shared todo in docs)
+**/*.todo
+**/TODO.md
+!docs/TODO.md
+
+# IDE
+.idea
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# misc
+.DS_Store
+Thumbs.db

@@ -1,0 +1,93 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Open Documentation Index",
+      "type": "shell",
+      "command": "code ${workspaceFolder}/docs/README.md",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "close": true
+      },
+      "group": "navigation"
+    },
+    {
+      "label": "Open Contributing Guide",
+      "type": "shell",
+      "command": "code ${workspaceFolder}/docs/CONTRIBUTING.md",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "close": true
+      },
+      "group": "navigation"
+    },
+    {
+      "label": "Open Issue Tracking Guide",
+      "type": "shell",
+      "command": "code ${workspaceFolder}/docs/ISSUE-TRACKING-GUIDE.md",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "close": true
+      },
+      "group": "navigation"
+    },
+    {
+      "label": "Open Style Guide",
+      "type": "shell",
+      "command": "code ${workspaceFolder}/docs/STYLE-GUIDE.md",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "close": true
+      },
+      "group": "navigation"
+    },
+    {
+      "label": "Open Database Guide",
+      "type": "shell",
+      "command": "code ${workspaceFolder}/docs/DATABASE-GUIDE.md",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "close": true
+      },
+      "group": "navigation"
+    },
+    {
+      "label": "Open TODO List",
+      "type": "shell",
+      "command": "code ${workspaceFolder}/docs/TODO.md",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "close": true
+      },
+      "group": "navigation"
+    },
+    {
+      "label": "Open User Stories",
+      "type": "shell",
+      "command": "code ${workspaceFolder}/docs/USER-STORIES.md",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "close": true
+      },
+      "group": "navigation"
+    },
+    {
+      "label": "Open Issue Tracker",
+      "type": "shell",
+      "command": "code ${workspaceFolder}/.issues/README.md",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "close": true
+      },
+      "group": "navigation"
+    }
+  ]
+}

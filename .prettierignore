@@ -1,0 +1,33 @@
+# Node modules
+node_modules/
+
+# Build folders
+dist/
+.next/
+build/
+out/
+
+# Generated files
+next-env.d.ts
+*.d.ts
+*.js.map
+*.tsbuildinfo
+pnpm-lock.yaml
+
+# Version files
+version.json
+packages/*/version.ts
+packages/web-fe/lib/version.ts
+packages/api/src/version.ts
+
+# Package files
+package.json
+packages/*/package.json
+
+# Public assets
+public/
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store

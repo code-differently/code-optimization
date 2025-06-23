@@ -1,0 +1,64 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  
+  "todo-tree.general.tags": [
+    "BUG",
+    "HACK",
+    "FIXME",
+    "TODO",
+    "XXX",
+    "FEAT"
+  ],
+  "todo-tree.regex.regex": "(//|#|<!--|;|/\\*|^|^\\s*(-|\\d+.))\\s*($TAGS)(\\(#[BF]-\\d{3}\\))?:?\\s+([^\\n]*)",
+  "todo-tree.highlights.defaultHighlight": {
+    "foreground": "white",
+    "background": "#8a8a8a",
+    "icon": "check",
+    "iconColour": "white",
+    "gutterIcon": true
+  },
+  "todo-tree.highlights.customHighlight": {
+    "TODO": {
+      "background": "#3375FF",
+      "icon": "list-unordered"
+    },
+    "BUG": {
+      "background": "#FF0000",
+      "icon": "bug"
+    },
+    "FIXME": {
+      "background": "#FF7700",
+      "icon": "tools"
+    },
+    "HACK": {
+      "background": "#8800FF",
+      "icon": "alert"
+    },
+    "FEAT": {
+      "background": "#00AA00",
+      "icon": "star"
+    }
+  },
+  "cSpell.words": [
+    "anthonydmays",
+    "nums",
+    "Spoudazo"
+  ]
+}
